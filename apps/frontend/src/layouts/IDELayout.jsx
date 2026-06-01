@@ -16,19 +16,27 @@ import EditorTabs from "../components/EditorTabs";
 import { initialFiles } from "../utils/initialFiles";
 
 const IDELayout = () => {
-  const [files, setFiles] = useState(initialFiles);
+  const [files, setFiles] =
+    useState(initialFiles);
 
   const [activeFile, setActiveFile] =
     useState(initialFiles[0]);
 
+  const [terminalOutput, setTerminalOutput] =
+    useState("Welcome to Cloud IDE");
+
+  const [isRunning, setIsRunning] =
+    useState(false);
+
   const updateFileContent = (value) => {
-    const updatedFiles = files.map((file) =>
-      file.id === activeFile.id
-        ? {
-            ...file,
-            content: value,
-          }
-        : file
+    const updatedFiles = files.map(
+      (file) =>
+        file.id === activeFile.id
+          ? {
+              ...file,
+              content: value,
+            }
+          : file
     );
 
     setFiles(updatedFiles);
@@ -38,35 +46,32 @@ const IDELayout = () => {
       content: value,
     });
   };
-
-  const createNewFile = (
-    fileName,
-    language
-  ) => {
-    const extensionMap = {
-      javascript: "js",
-      python: "py",
-      c: "c",
-      cpp: "cpp",
-      java: "java",
-      go: "go",
-    };
-
-    const extension =
-      extensionMap[language];
-
-    const newFile = {
-      id: Date.now(),
-      name: `${fileName}.${extension}`,
-      language,
-      content: "",
-    };
-
-    setFiles([...files, newFile]);
-
-    setActiveFile(newFile);
+const createNewFile = (fileName, language) => {
+  const extensionMap = {
+    javascript: "js",
+    python: "py",
+    c: "c",
+    cpp: "cpp",
+    java: "java",
+    go: "go",
   };
 
+  const extension = extensionMap[language];
+
+  const cleanName = fileName.includes(".")
+    ? fileName.split(".")[0]
+    : fileName;
+
+  const newFile = {
+    id: Date.now(),
+    name: `${cleanName}.${extension}`,
+    language,
+    content: "",
+  };
+
+  setFiles((prev) => [...prev, newFile]);
+  setActiveFile(newFile);
+};
   const deleteFile = (id) => {
     if (files.length === 1) return;
 
@@ -81,10 +86,57 @@ const IDELayout = () => {
     }
   };
 
+  const renameFile = (
+    id,
+    newName
+  ) => {
+    const updatedFiles = files.map(
+      (file) =>
+        file.id === id
+          ? {
+              ...file,
+              name: newName,
+            }
+          : file
+    );
+
+    setFiles(updatedFiles);
+
+    if (activeFile.id === id) {
+      setActiveFile({
+        ...activeFile,
+        name: newName,
+      });
+    }
+  };
+
+  const runCode = async () => {
+    setIsRunning(true);
+
+    setTerminalOutput(
+      "Executing..."
+    );
+
+    setTimeout(() => {
+      setTerminalOutput(
+`Running ${activeFile.name}
+
+Execution Successful
+
+Language: ${activeFile.language}`
+      );
+
+      setIsRunning(false);
+    }, 1500);
+  };
+
   return (
     <div className="h-screen bg-[#121212] flex flex-col">
       <Navbar
         createNewFile={createNewFile}
+        activeFile={activeFile}
+        runCode={runCode}
+        isRunning={isRunning}
       />
 
       <PanelGroup
@@ -101,6 +153,8 @@ const IDELayout = () => {
             files={files}
             activeFile={activeFile}
             setActiveFile={setActiveFile}
+            deleteFile={deleteFile}
+            renameFile={renameFile}
           />
         </Panel>
 
@@ -134,7 +188,12 @@ const IDELayout = () => {
               defaultSize={25}
               minSize={15}
             >
-              <Terminal />
+              <Terminal
+                terminalOutput={
+                  terminalOutput
+                }
+                activeFile={activeFile}
+              />
             </Panel>
           </PanelGroup>
         </Panel>
