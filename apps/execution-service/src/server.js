@@ -1,11 +1,17 @@
 const express = require("express");
+const cors = require("cors");
+
+const executeRoutes = require("./routes/execute.routes");
 
 const app = express();
 
-app.get("/", (req, res) => {
-  res.send("Execution services running");
-});
+app.use(cors());
+app.use(express.json());
 
-app.listen(5003, () => {
-  console.log("Execution services running on port 5003");
+app.use("/api/v1/execute", executeRoutes);
+
+const PORT = 5004;
+
+app.listen(PORT, () => {
+  console.log(`Execution Service Running On Port ${PORT}`);
 });

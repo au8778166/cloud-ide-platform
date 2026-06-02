@@ -1,10 +1,6 @@
 import { useState } from "react";
 
-import {
-  Panel,
-  PanelGroup,
-  PanelResizeHandle,
-} from "react-resizable-panels";
+import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
 
 import Navbar from "../components/Navbar";
 import Sidebar from "../components/Sidebar";
@@ -12,31 +8,27 @@ import FileExplorer from "../components/FileExplorer";
 import Editor from "../components/Editor";
 import Terminal from "../components/Terminal";
 import EditorTabs from "../components/EditorTabs";
+import { executeCode } from "../api/executionApi";
 
 import { initialFiles } from "../utils/initialFiles";
 
 const IDELayout = () => {
-  const [files, setFiles] =
-    useState(initialFiles);
+  const [files, setFiles] = useState(initialFiles);
 
-  const [activeFile, setActiveFile] =
-    useState(initialFiles[0]);
+  const [activeFile, setActiveFile] = useState(initialFiles[0]);
 
-  const [terminalOutput, setTerminalOutput] =
-    useState("Welcome to Cloud IDE");
+  const [terminalOutput, setTerminalOutput] = useState("Welcome to Cloud IDE");
 
-  const [isRunning, setIsRunning] =
-    useState(false);
+  const [isRunning, setIsRunning] = useState(false);
 
   const updateFileContent = (value) => {
-    const updatedFiles = files.map(
-      (file) =>
-        file.id === activeFile.id
-          ? {
-              ...file,
-              content: value,
-            }
-          : file
+    const updatedFiles = files.map((file) =>
+      file.id === activeFile.id
+        ? {
+            ...file,
+            content: value,
+          }
+        : file,
     );
 
     setFiles(updatedFiles);
@@ -46,38 +38,36 @@ const IDELayout = () => {
       content: value,
     });
   };
-const createNewFile = (fileName, language) => {
-  const extensionMap = {
-    javascript: "js",
-    python: "py",
-    c: "c",
-    cpp: "cpp",
-    java: "java",
-    go: "go",
+  const createNewFile = (fileName, language) => {
+    const extensionMap = {
+      javascript: "js",
+      python: "py",
+      c: "c",
+      cpp: "cpp",
+      java: "java",
+      go: "go",
+    };
+
+    const extension = extensionMap[language];
+
+    const cleanName = fileName.includes(".")
+      ? fileName.split(".")[0]
+      : fileName;
+
+    const newFile = {
+      id: Date.now(),
+      name: `${cleanName}.${extension}`,
+      language,
+      content: "",
+    };
+
+    setFiles((prev) => [...prev, newFile]);
+    setActiveFile(newFile);
   };
-
-  const extension = extensionMap[language];
-
-  const cleanName = fileName.includes(".")
-    ? fileName.split(".")[0]
-    : fileName;
-
-  const newFile = {
-    id: Date.now(),
-    name: `${cleanName}.${extension}`,
-    language,
-    content: "",
-  };
-
-  setFiles((prev) => [...prev, newFile]);
-  setActiveFile(newFile);
-};
   const deleteFile = (id) => {
     if (files.length === 1) return;
 
-    const updatedFiles = files.filter(
-      (file) => file.id !== id
-    );
+    const updatedFiles = files.filter((file) => file.id !== id);
 
     setFiles(updatedFiles);
 
@@ -86,18 +76,14 @@ const createNewFile = (fileName, language) => {
     }
   };
 
-  const renameFile = (
-    id,
-    newName
-  ) => {
-    const updatedFiles = files.map(
-      (file) =>
-        file.id === id
-          ? {
-              ...file,
-              name: newName,
-            }
-          : file
+  const renameFile = (id, newName) => {
+    const updatedFiles = files.map((file) =>
+      file.id === id
+        ? {
+            ...file,
+            name: newName,
+          }
+        : file,
     );
 
     setFiles(updatedFiles);
@@ -111,24 +97,21 @@ const createNewFile = (fileName, language) => {
   };
 
   const runCode = async () => {
-    setIsRunning(true);
+  setIsRunning(true);
 
-    setTerminalOutput(
-      "Executing..."
+  try {
+    const result = await executeCode(
+      activeFile.language,
+      activeFile.content
     );
 
-    setTimeout(() => {
-      setTerminalOutput(
-`Running ${activeFile.name}
+    setTerminalOutput(result.output);
+  } catch (error) {
+    setTerminalOutput(error.message);
+  }
 
-Execution Successful
-
-Language: ${activeFile.language}`
-      );
-
-      setIsRunning(false);
-    }, 1500);
-  };
+  setIsRunning(false);
+};
 
   return (
     <div className="h-screen bg-[#121212] flex flex-col">
@@ -139,16 +122,10 @@ Language: ${activeFile.language}`
         isRunning={isRunning}
       />
 
-      <PanelGroup
-        direction="horizontal"
-        className="flex-1"
-      >
+      <PanelGroup direction="horizontal" className="flex-1">
         <Sidebar />
 
-        <Panel
-          defaultSize={18}
-          minSize={15}
-        >
+        <Panel defaultSize={18} minSize={15}>
           <FileExplorer
             files={files}
             activeFile={activeFile}
@@ -174,9 +151,7 @@ Language: ${activeFile.language}`
                 <div className="flex-1">
                   <Editor
                     activeFile={activeFile}
-                    updateFileContent={
-                      updateFileContent
-                    }
+                    updateFileContent={updateFileContent}
                   />
                 </div>
               </div>
@@ -184,14 +159,9 @@ Language: ${activeFile.language}`
 
             <PanelResizeHandle className="h-[2px] bg-gray-800" />
 
-            <Panel
-              defaultSize={25}
-              minSize={15}
-            >
+            <Panel defaultSize={25} minSize={15}>
               <Terminal
-                terminalOutput={
-                  terminalOutput
-                }
+                terminalOutput={terminalOutput}
                 activeFile={activeFile}
               />
             </Panel>
