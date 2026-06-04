@@ -1,22 +1,24 @@
 {
   "name": "worker-service",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "main": "server.js",
   "scripts": {
-  "dev": "nodemon src/worker.js",
-  "start": "node src/worker.js"
+    "dev": "nodemon src/server.js",
+    "start": "node src/server.js"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "packageManager": "pnpm@10.33.4",
   "dependencies": {
+    "bullmq": "^5.78.0",
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",
-    "express": "^5.2.1"
+    "express": "^5.2.1",
+    "ioredis": "^5.11.1"
   },
   "devDependencies": {
     "nodemon": "^3.1.14"
-  }
+  },
+  "description": ""
 }
