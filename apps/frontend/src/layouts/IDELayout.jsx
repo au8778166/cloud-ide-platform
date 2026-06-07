@@ -1,6 +1,7 @@
 import { useState } from "react";
 
 import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
+import { getJobStatus } from "../api/jobApi";
 
 import Navbar from "../components/Navbar";
 import Sidebar from "../components/Sidebar";
@@ -100,14 +101,50 @@ const IDELayout = () => {
   setIsRunning(true);
 
   try {
-    const result = await executeCode(
+    setTerminalOutput("Running...");
+
+    const jobResponse = await executeCode(
       activeFile.language,
       activeFile.content
     );
 
-    setTerminalOutput(result.output);
+    const jobId = jobResponse.jobId;
+
+    let status = "waiting";
+
+    while (
+      status !== "completed" &&
+      status !== "failed"
+    ) {
+      const jobResult =
+        await getJobStatus(jobId);
+
+      status = jobResult.status;
+
+      if (status === "completed") {
+        setTerminalOutput(
+          jobResult.output
+        );
+        break;
+      }
+
+      if (status === "failed") {
+        setTerminalOutput(
+          jobResult.output ||
+            "Execution Failed"
+        );
+        break;
+      }
+
+      await new Promise((resolve) =>
+        setTimeout(resolve, 1000)
+      );
+    }
   } catch (error) {
-    setTerminalOutput(error.message);
+    setTerminalOutput(
+      error.message ||
+        "Execution Failed"
+    );
   }
 
   setIsRunning(false);
