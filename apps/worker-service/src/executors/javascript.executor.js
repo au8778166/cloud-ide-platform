@@ -1,40 +1,41 @@
-const { spawn } = require("child_process");
+const createTempFile = require(
+  "../utils/createTempFile"
+);
 
-const createTempFile = require("../utils/createTempFile");
+const cleanupFile = require(
+  "../utils/cleanupFile"
+);
 
-const cleanupFile = require("../utils/cleanupFile");
+const runCommand = require(
+  "../utils/runCommand"
+);
 
-const executeJavaScript = async (code) => {
-  return new Promise((resolve, reject) => {
+const executeJavaScript =
+  async (code) => {
+    let filePath;
+
     try {
-      const filePath = createTempFile(code, "js");
+      filePath =
+        createTempFile(
+          code,
+          "js"
+        );
 
-      const child = spawn("node", [filePath]);
+      const output =
+        await runCommand(
+          "node",
+          [filePath]
+        );
 
-      let output = "";
-      let error = "";
-
-      child.stdout.on("data", (data) => {
-        output += data.toString();
-      });
-
-      child.stderr.on("data", (data) => {
-        error += data.toString();
-      });
-
-      child.on("close", () => {
+      return output;
+    } catch (error) {
+      throw error;
+    } finally {
+      if (filePath) {
         cleanupFile(filePath);
-
-        if (error) {
-          reject(error);
-        } else {
-          resolve(output);
-        }
-      });
-    } catch (err) {
-      reject(err.message);
+      }
     }
-  });
-};
+  };
 
-module.exports = executeJavaScript;
+module.exports =
+  executeJavaScript;

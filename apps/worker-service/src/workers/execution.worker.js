@@ -5,21 +5,25 @@ const ExecutorFactory = require("../factories/executor.factory");
 const worker = new Worker(
   "execution-queue",
   async (job) => {
-    console.log("Job Received");
+    try {
+      console.log("Job Received");
 
-    const { language, code } = job.data;
+      const { language, code } = job.data;
 
-    const executor = ExecutorFactory.getExecutor(language);
+      const executor = ExecutorFactory.getExecutor(language);
 
-    const output = await executor(code);
+      const output = await executor(code);
 
-    console.log("OUTPUT:");
+      console.log("OUTPUT:");
+      console.log(output);
 
-    console.log(output);
-
-    return {
-      output,
-    };
+      return {
+        success: true,
+        output,
+      };
+    } catch (error) {
+      throw new Error(error.toString());
+    }
   },
   {
     connection: {
@@ -28,5 +32,14 @@ const worker = new Worker(
     },
   },
 );
+
+worker.on("completed", (job) => {
+  console.log(`Job ${job.id} completed`);
+});
+
+worker.on("failed", (job, err) => {
+  console.log(`Job ${job.id} failed`);
+  console.log(err.message);
+});
 
 console.log("Execution Worker Running");

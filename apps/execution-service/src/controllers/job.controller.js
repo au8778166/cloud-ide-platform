@@ -1,21 +1,26 @@
-const { Job } = require("bullmq");
+const { Job } = require(
+  "bullmq"
+);
 
 const getJobStatus = async (
   req,
   res
 ) => {
   try {
-    const { jobId } = req.params;
+    const { jobId } =
+      req.params;
 
-    const job = await Job.fromId(
-      global.executionQueue,
-      jobId
-    );
+    const job =
+      await Job.fromId(
+        global.executionQueue,
+        jobId
+      );
 
     if (!job) {
       return res.status(404).json({
         success: false,
-        message: "Job not found",
+        message:
+          "Job not found",
       });
     }
 
@@ -25,16 +30,23 @@ const getJobStatus = async (
     const result =
       job.returnvalue;
 
+    const failedReason =
+      job.failedReason;
+
     return res.status(200).json({
       success: true,
       jobId,
       status: state,
-      output: result?.output || "",
+      output:
+        result?.output || "",
+      error:
+        failedReason || null,
     });
   } catch (error) {
     return res.status(500).json({
       success: false,
-      message: error.message,
+      message:
+        error.message,
     });
   }
 };

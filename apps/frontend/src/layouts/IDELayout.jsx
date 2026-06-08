@@ -98,57 +98,52 @@ const IDELayout = () => {
   };
 
   const runCode = async () => {
-  setIsRunning(true);
+    setIsRunning(true);
 
-  try {
-    setTerminalOutput("Running...");
+    try {
+      setTerminalOutput("Running...");
 
-    const jobResponse = await executeCode(
-      activeFile.language,
-      activeFile.content
-    );
-
-    const jobId = jobResponse.jobId;
-
-    let status = "waiting";
-
-    while (
-      status !== "completed" &&
-      status !== "failed"
-    ) {
-      const jobResult =
-        await getJobStatus(jobId);
-
-      status = jobResult.status;
-
-      if (status === "completed") {
-        setTerminalOutput(
-          jobResult.output
-        );
-        break;
-      }
-
-      if (status === "failed") {
-        setTerminalOutput(
-          jobResult.output ||
-            "Execution Failed"
-        );
-        break;
-      }
-
-      await new Promise((resolve) =>
-        setTimeout(resolve, 1000)
+      const jobResponse = await executeCode(
+        activeFile.language,
+        activeFile.content,
       );
-    }
-  } catch (error) {
-    setTerminalOutput(
-      error.message ||
-        "Execution Failed"
-    );
-  }
 
-  setIsRunning(false);
-};
+      const jobId = jobResponse.jobId;
+
+      let status = "waiting";
+
+      const startTime = Date.now();
+      const MAX_WAIT_TIME = 10000;
+
+      while (status !== "completed" && status !== "failed") {
+        if (Date.now() - startTime > MAX_WAIT_TIME) {
+          setTerminalOutput("Execution Timeout");
+
+          break;
+        }
+
+        const jobResult = await getJobStatus(jobId);
+
+        status = jobResult.status;
+
+        if (status === "completed") {
+          setTerminalOutput(jobResult.output);
+          break;
+        }
+
+        if (status === "failed") {
+          setTerminalOutput(jobResult.error || "Execution Failed");
+          break;
+        }
+
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+      }
+    } catch (error) {
+      setTerminalOutput(error.message || "Execution Failed");
+    }
+
+    setIsRunning(false);
+  };
 
   return (
     <div className="h-screen bg-[#121212] flex flex-col">
