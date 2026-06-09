@@ -6,7 +6,7 @@ const cleanupFile = require("../utils/cleanupFile");
 
 const runCommand = require("../utils/runCommand");
 
-const executeC = async (code) => {
+const executeC = async (code,input = "") => {
   let sourceFile;
   let executableFile;
 
@@ -17,7 +17,8 @@ const executeC = async (code) => {
 
     await runCommand("gcc", [sourceFile, "-o", executableFile]);
 
-    const output = await runCommand(executableFile);
+    const output = await runCommand(executableFile,[],
+  input);
 
     return output;
   } catch (error) {

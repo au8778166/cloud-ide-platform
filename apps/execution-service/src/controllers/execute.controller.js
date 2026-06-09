@@ -2,13 +2,14 @@ const executionQueue = require("../queues/execution.queue");
 
 const executeCode = async (req, res) => {
   try {
-    const { language, code } = req.body;
+    const { language, code, input } = req.body;
 
     const job = await executionQueue.add(
       "execute-code",
       {
         language,
         code,
+        input
       }
     );
 

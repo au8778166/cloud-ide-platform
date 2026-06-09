@@ -4,7 +4,7 @@ const cleanupFile = require("../utils/cleanupFile");
 
 const runCommand = require("../utils/runCommand");
 
-const executeCpp = async (code) => {
+const executeCpp = async (code,input = "") => {
   let sourceFile;
   let executableFile;
 
@@ -15,7 +15,8 @@ const executeCpp = async (code) => {
 
     await runCommand("g++", [sourceFile, "-o", executableFile]);
 
-    const output = await runCommand(executableFile);
+    const output = await runCommand(executableFile,[],
+  input);
 
     return output;
   } catch (error) {

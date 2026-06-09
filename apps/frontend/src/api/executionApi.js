@@ -6,7 +6,8 @@ const executionApi = axios.create({
 
 export const executeCode = async (
   language,
-  code
+  code,
+  input,
 ) => {
   const response =
     await executionApi.post(
@@ -14,6 +15,7 @@ export const executeCode = async (
       {
         language,
         code,
+        input
       }
     );
 

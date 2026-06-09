@@ -1,6 +1,10 @@
 const { spawn } = require("child_process");
 
-const runCommand = (command, args = []) => {
+const runCommand = (
+  command,
+  args = [],
+  input = ""
+) => {
   return new Promise((resolve, reject) => {
     const child = spawn(command, args);
 
@@ -9,12 +13,20 @@ const runCommand = (command, args = []) => {
     let timedOut = false;
 
     const timeout = setTimeout(() => {
-      console.log("TIMEOUT HIT");
-
       timedOut = true;
 
       child.kill("SIGKILL");
     }, 5000);
+
+    if (
+      input !== undefined &&
+      input !== null &&
+      input.length > 0
+    ) {
+      child.stdin.write(input);
+    }
+
+    child.stdin.end();
 
     child.stdout.on("data", (data) => {
       output += data.toString();
@@ -42,7 +54,6 @@ const runCommand = (command, args = []) => {
 
     child.on("error", (err) => {
       clearTimeout(timeout);
-
       reject(err.message);
     });
   });

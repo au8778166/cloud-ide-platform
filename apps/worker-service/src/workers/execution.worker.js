@@ -8,11 +8,11 @@ const worker = new Worker(
     try {
       console.log("Job Received");
 
-      const { language, code } = job.data;
+      const { language, code, input } = job.data;
 
       const executor = ExecutorFactory.getExecutor(language);
 
-      const output = await executor(code);
+      const output = await executor(code, input);
 
       console.log("OUTPUT:");
       console.log(output);

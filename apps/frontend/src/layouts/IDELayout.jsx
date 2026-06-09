@@ -19,6 +19,7 @@ const IDELayout = () => {
   const [activeFile, setActiveFile] = useState(initialFiles[0]);
 
   const [terminalOutput, setTerminalOutput] = useState("Welcome to Cloud IDE");
+  const [programInput, setProgramInput] = useState("");
 
   const [isRunning, setIsRunning] = useState(false);
 
@@ -106,6 +107,7 @@ const IDELayout = () => {
       const jobResponse = await executeCode(
         activeFile.language,
         activeFile.content,
+        programInput,
       );
 
       const jobId = jobResponse.jobId;
@@ -195,6 +197,8 @@ const IDELayout = () => {
               <Terminal
                 terminalOutput={terminalOutput}
                 activeFile={activeFile}
+                programInput={programInput}
+                setProgramInput={setProgramInput}
               />
             </Panel>
           </PanelGroup>

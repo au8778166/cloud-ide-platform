@@ -1,40 +1,41 @@
-const { spawn } = require("child_process");
+const createTempFile = require(
+  "../utils/createTempFile"
+);
 
-const createTempFile = require("../utils/createTempFile");
+const cleanupFile = require(
+  "../utils/cleanupFile"
+);
 
-const cleanupFile = require("../utils/cleanupFile");
+const runCommand = require(
+  "../utils/runCommand"
+);
 
-const executePython = async (code) => {
-  return new Promise((resolve, reject) => {
-    try {
-      const filePath = createTempFile(code, "py");
+const executePython = async (
+  code,
+  input = ""
+) => {
+  let filePath;
 
-      const child = spawn("python", [filePath]);
+  try {
+    filePath = createTempFile(
+      code,
+      "py"
+    );
 
-      let output = "";
-      let error = "";
+    const output =
+      await runCommand(
+        "python",
+        [filePath],
+        input
+      );
 
-      child.stdout.on("data", (data) => {
-        output += data.toString();
-      });
-
-      child.stderr.on("data", (data) => {
-        error += data.toString();
-      });
-
-      child.on("close", () => {
-        cleanupFile(filePath);
-
-        if (error) {
-          reject(error);
-        } else {
-          resolve(output);
-        }
-      });
-    } catch (err) {
-      reject(err.message);
+    return output;
+  } finally {
+    if (filePath) {
+      cleanupFile(filePath);
     }
-  });
+  }
 };
 
-module.exports = executePython;
+module.exports =
+  executePython;

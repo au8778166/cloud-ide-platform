@@ -11,26 +11,25 @@ const runCommand = require(
 );
 
 const executePython = async (
-  code
+  code,
+  input = ""
 ) => {
   let filePath;
 
   try {
-    filePath =
-      createTempFile(
-        code,
-        "py"
-      );
+    filePath = createTempFile(
+      code,
+      "py"
+    );
 
     const output =
       await runCommand(
         "python",
-        [filePath]
+        [filePath],
+        input
       );
 
     return output;
-  } catch (error) {
-    throw error;
   } finally {
     if (filePath) {
       cleanupFile(filePath);

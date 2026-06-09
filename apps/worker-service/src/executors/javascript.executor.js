@@ -10,32 +10,32 @@ const runCommand = require(
   "../utils/runCommand"
 );
 
-const executeJavaScript =
-  async (code) => {
-    let filePath;
+const executeJavaScript = async (
+  code,
+  input = ""
+) => {
+  let filePath;
 
-    try {
-      filePath =
-        createTempFile(
-          code,
-          "js"
-        );
+  try {
+    filePath = createTempFile(
+      code,
+      "js"
+    );
 
-      const output =
-        await runCommand(
-          "node",
-          [filePath]
-        );
+    const output =
+      await runCommand(
+        "node",
+        [filePath],
+        input
+      );
 
-      return output;
-    } catch (error) {
-      throw error;
-    } finally {
-      if (filePath) {
-        cleanupFile(filePath);
-      }
+    return output;
+  } finally {
+    if (filePath) {
+      cleanupFile(filePath);
     }
-  };
+  }
+};
 
 module.exports =
   executeJavaScript;
