@@ -1,7 +1,22 @@
-import IDELayout from "./layouts/IDELayout.jsx";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+
+import IDELayout from "./layouts/IDELayout";
+
+import Login from "./pages/Login";
+import Register from "./pages/Register";
 
 function App() {
-  return <IDELayout />;
+  return (
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<IDELayout />} />
+
+        <Route path="/login" element={<Login />} />
+
+        <Route path="/register" element={<Register />} />
+      </Routes>
+    </BrowserRouter>
+  );
 }
 
 export default App;

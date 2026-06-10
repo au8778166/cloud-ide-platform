@@ -1,7 +1,8 @@
 import axios from "axios";
 
 const api = axios.create({
-  baseURL: "http://localhost:5004/api",
+  baseURL:
+    import.meta.env.VITE_JOB_SERVICE_URL,
 });
 
 export const getJobStatus = async (

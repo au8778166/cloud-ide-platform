@@ -10,7 +10,9 @@ import Editor from "../components/Editor";
 import Terminal from "../components/Terminal";
 import EditorTabs from "../components/EditorTabs";
 import { executeCode } from "../api/executionApi";
+import { useAuth } from "../context/AuthContext";
 
+import { createProject, createFile } from "../api/projectApi";
 import { initialFiles } from "../utils/initialFiles";
 
 const IDELayout = () => {
@@ -22,7 +24,7 @@ const IDELayout = () => {
   const [programInput, setProgramInput] = useState("");
 
   const [isRunning, setIsRunning] = useState(false);
-
+  const { token } = useAuth();
   const updateFileContent = (value) => {
     const updatedFiles = files.map((file) =>
       file.id === activeFile.id
@@ -97,6 +99,51 @@ const IDELayout = () => {
       });
     }
   };
+  const saveProject = async () => {
+  try {
+    if (!token) {
+      alert(
+        "Please login to save projects"
+      );
+      return;
+    }
+
+    const projectName = prompt(
+      "Enter project name"
+    );
+
+    if (!projectName) return;
+
+    const projectResponse =
+      await createProject(
+        projectName,
+        token
+      );
+
+    const projectId =
+      projectResponse.project.id;
+
+    for (const file of files) {
+      await createFile(
+        projectId,
+        file,
+        token
+      );
+    }
+
+    alert(
+      "Project and files saved successfully"
+    );
+  } catch (error) {
+    console.error(error);
+
+    alert(
+      error.response?.data
+        ?.message ||
+        "Failed to save project"
+    );
+  }
+};
 
   const runCode = async () => {
     setIsRunning(true);
@@ -154,6 +201,7 @@ const IDELayout = () => {
         activeFile={activeFile}
         runCode={runCode}
         isRunning={isRunning}
+        saveProject={saveProject}
       />
 
       <PanelGroup direction="horizontal" className="flex-1">

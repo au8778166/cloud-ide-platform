@@ -1,7 +1,9 @@
 import axios from "axios";
 
 const executionApi = axios.create({
-  baseURL: "http://localhost:5004/api/v1",
+  baseURL:
+    import.meta.env
+      .VITE_EXECUTION_SERVICE_URL,
 });
 
 export const executeCode = async (
