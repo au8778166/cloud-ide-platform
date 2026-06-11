@@ -10,6 +10,7 @@ const Navbar = ({
   runCode,
   isRunning,
   saveProject,
+  openProjectsModal,
 }) => {
   const { user, token, logout } = useAuth();
 
@@ -42,6 +43,13 @@ const Navbar = ({
               className="bg-blue-600 px-4 py-1 rounded hover:bg-blue-700 disabled:bg-gray-600"
             >
               Save Project
+            </button>
+
+            <button
+              onClick={openProjectsModal}
+              className="bg-purple-600 px-4 py-1 rounded hover:bg-purple-700"
+            >
+              Open Project
             </button>
 
             <span className="text-sm text-gray-300">

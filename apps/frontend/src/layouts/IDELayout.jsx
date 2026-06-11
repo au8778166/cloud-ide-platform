@@ -4,8 +4,12 @@ import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
 
 import { getJobStatus } from "../api/jobApi";
 import { executeCode } from "../api/executionApi";
-
-import { createProject, createFile } from "../api/projectApi";
+import {
+  createProject,
+  createFile,
+  getProjects,
+  getProjectById,
+} from "../api/projectApi";
 
 import { useAuth } from "../context/AuthContext";
 
@@ -26,6 +30,9 @@ const IDELayout = () => {
   const [programInput, setProgramInput] = useState("");
 
   const [isRunning, setIsRunning] = useState(false);
+  const [projects, setProjects] = useState([]);
+
+  const [showProjects, setShowProjects] = useState(false);
 
   const { token } = useAuth();
 
@@ -144,6 +151,43 @@ const IDELayout = () => {
     }
   };
 
+  const openProjectsModal = async () => {
+    try {
+      if (!token) {
+        alert("Please login first");
+        return;
+      }
+
+      const data = await getProjects(token);
+
+      setProjects(data.projects);
+
+      setShowProjects(true);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const loadProject = async (projectId) => {
+    try {
+      const data = await getProjectById(projectId, token);
+
+      setFiles(data.project.files);
+
+      if (data.project.files.length > 0) {
+        setActiveFile(data.project.files[0]);
+      } else {
+        setActiveFile(null);
+      }
+
+      setShowProjects(false);
+
+      setTerminalOutput(`Loaded project: ${data.project.name}`);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
   const runCode = async () => {
     if (!activeFile) return;
 
@@ -206,6 +250,7 @@ const IDELayout = () => {
         runCode={runCode}
         isRunning={isRunning}
         saveProject={saveProject}
+        openProjectsModal={openProjectsModal}
       />
 
       <PanelGroup direction="horizontal" className="flex-1">
@@ -268,6 +313,38 @@ const IDELayout = () => {
           </PanelGroup>
         </Panel>
       </PanelGroup>
+      {showProjects && (
+  <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+    <div className="bg-[#1e1e1e] w-96 rounded-lg p-6">
+      <h2 className="text-white text-xl mb-4">
+        Your Projects
+      </h2>
+
+      <div className="space-y-2 max-h-80 overflow-y-auto">
+        {projects.map((project) => (
+          <button
+            key={project.id}
+            onClick={() =>
+              loadProject(project.id)
+            }
+            className="w-full text-left p-3 rounded bg-[#2a2a2a] text-white hover:bg-[#3a3a3a]"
+          >
+            {project.name}
+          </button>
+        ))}
+      </div>
+
+      <button
+        onClick={() =>
+          setShowProjects(false)
+        }
+        className="mt-4 bg-red-600 px-4 py-2 rounded text-white"
+      >
+        Close
+      </button>
+    </div>
+  </div>
+)}
     </div>
   );
 };
