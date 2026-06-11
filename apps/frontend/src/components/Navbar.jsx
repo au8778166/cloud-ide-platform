@@ -19,7 +19,7 @@ const Navbar = ({
         <h1 className="text-lg font-semibold">Cloud IDE</h1>
 
         <span className="text-sm text-gray-400">
-          Current: {activeFile?.language}
+          Current: {activeFile?.language || "No File"}
         </span>
       </div>
 
@@ -28,7 +28,7 @@ const Navbar = ({
 
         <button
           onClick={runCode}
-          disabled={isRunning}
+          disabled={isRunning || !activeFile}
           className="bg-green-600 px-4 py-1 rounded hover:bg-green-700 disabled:bg-gray-600"
         >
           {isRunning ? "Running..." : "Run"}
@@ -38,7 +38,8 @@ const Navbar = ({
           <>
             <button
               onClick={saveProject}
-              className="bg-blue-600 px-4 py-1 rounded hover:bg-blue-700"
+              disabled={!activeFile}
+              className="bg-blue-600 px-4 py-1 rounded hover:bg-blue-700 disabled:bg-gray-600"
             >
               Save Project
             </button>

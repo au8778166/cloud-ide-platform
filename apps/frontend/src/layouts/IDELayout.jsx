@@ -1,7 +1,13 @@
 import { useState } from "react";
 
 import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
+
 import { getJobStatus } from "../api/jobApi";
+import { executeCode } from "../api/executionApi";
+
+import { createProject, createFile } from "../api/projectApi";
+
+import { useAuth } from "../context/AuthContext";
 
 import Navbar from "../components/Navbar";
 import Sidebar from "../components/Sidebar";
@@ -9,23 +15,23 @@ import FileExplorer from "../components/FileExplorer";
 import Editor from "../components/Editor";
 import Terminal from "../components/Terminal";
 import EditorTabs from "../components/EditorTabs";
-import { executeCode } from "../api/executionApi";
-import { useAuth } from "../context/AuthContext";
-
-import { createProject, createFile } from "../api/projectApi";
-import { initialFiles } from "../utils/initialFiles";
 
 const IDELayout = () => {
-  const [files, setFiles] = useState(initialFiles);
+  const [files, setFiles] = useState([]);
 
-  const [activeFile, setActiveFile] = useState(initialFiles[0]);
+  const [activeFile, setActiveFile] = useState(null);
 
   const [terminalOutput, setTerminalOutput] = useState("Welcome to Cloud IDE");
+
   const [programInput, setProgramInput] = useState("");
 
   const [isRunning, setIsRunning] = useState(false);
+
   const { token } = useAuth();
+
   const updateFileContent = (value) => {
+    if (!activeFile) return;
+
     const updatedFiles = files.map((file) =>
       file.id === activeFile.id
         ? {
@@ -42,6 +48,7 @@ const IDELayout = () => {
       content: value,
     });
   };
+
   const createNewFile = (fileName, language) => {
     const extensionMap = {
       javascript: "js",
@@ -66,16 +73,21 @@ const IDELayout = () => {
     };
 
     setFiles((prev) => [...prev, newFile]);
+
     setActiveFile(newFile);
   };
-  const deleteFile = (id) => {
-    if (files.length === 1) return;
 
+  const deleteFile = (id) => {
     const updatedFiles = files.filter((file) => file.id !== id);
 
     setFiles(updatedFiles);
 
-    if (activeFile.id === id) {
+    if (updatedFiles.length === 0) {
+      setActiveFile(null);
+      return;
+    }
+
+    if (activeFile?.id === id) {
       setActiveFile(updatedFiles[0]);
     }
   };
@@ -92,60 +104,49 @@ const IDELayout = () => {
 
     setFiles(updatedFiles);
 
-    if (activeFile.id === id) {
+    if (activeFile?.id === id) {
       setActiveFile({
         ...activeFile,
         name: newName,
       });
     }
   };
+
   const saveProject = async () => {
-  try {
-    if (!token) {
-      alert(
-        "Please login to save projects"
-      );
-      return;
+    try {
+      if (!token) {
+        alert("Please login to save projects");
+        return;
+      }
+
+      if (files.length === 0) {
+        alert("Create at least one file before saving");
+        return;
+      }
+
+      const projectName = prompt("Enter project name");
+
+      if (!projectName) return;
+
+      const projectResponse = await createProject(projectName, token);
+
+      const projectId = projectResponse.project.id;
+
+      for (const file of files) {
+        await createFile(projectId, file, token);
+      }
+
+      alert("Project and files saved successfully");
+    } catch (error) {
+      console.error(error);
+
+      alert(error.response?.data?.message || "Failed to save project");
     }
-
-    const projectName = prompt(
-      "Enter project name"
-    );
-
-    if (!projectName) return;
-
-    const projectResponse =
-      await createProject(
-        projectName,
-        token
-      );
-
-    const projectId =
-      projectResponse.project.id;
-
-    for (const file of files) {
-      await createFile(
-        projectId,
-        file,
-        token
-      );
-    }
-
-    alert(
-      "Project and files saved successfully"
-    );
-  } catch (error) {
-    console.error(error);
-
-    alert(
-      error.response?.data
-        ?.message ||
-        "Failed to save project"
-    );
-  }
-};
+  };
 
   const runCode = async () => {
+    if (!activeFile) return;
+
     setIsRunning(true);
 
     try {
@@ -162,6 +163,7 @@ const IDELayout = () => {
       let status = "waiting";
 
       const startTime = Date.now();
+
       const MAX_WAIT_TIME = 10000;
 
       while (status !== "completed" && status !== "failed") {
@@ -177,11 +179,13 @@ const IDELayout = () => {
 
         if (status === "completed") {
           setTerminalOutput(jobResult.output);
+
           break;
         }
 
         if (status === "failed") {
           setTerminalOutput(jobResult.error || "Execution Failed");
+
           break;
         }
 
@@ -223,18 +227,30 @@ const IDELayout = () => {
           <PanelGroup direction="vertical">
             <Panel defaultSize={75}>
               <div className="flex flex-col h-full">
-                <EditorTabs
-                  files={files}
-                  activeFile={activeFile}
-                  setActiveFile={setActiveFile}
-                  deleteFile={deleteFile}
-                />
+                {files.length > 0 && (
+                  <EditorTabs
+                    files={files}
+                    activeFile={activeFile}
+                    setActiveFile={setActiveFile}
+                    deleteFile={deleteFile}
+                  />
+                )}
 
                 <div className="flex-1">
-                  <Editor
-                    activeFile={activeFile}
-                    updateFileContent={updateFileContent}
-                  />
+                  {activeFile ? (
+                    <Editor
+                      activeFile={activeFile}
+                      updateFileContent={updateFileContent}
+                    />
+                  ) : (
+                    <div className="h-full flex flex-col items-center justify-center text-gray-500">
+                      <h2 className="text-3xl font-semibold mb-2">
+                        Welcome to Cloud IDE
+                      </h2>
+
+                      <p className="text-lg">Create a file to start coding</p>
+                    </div>
+                  )}
                 </div>
               </div>
             </Panel>
