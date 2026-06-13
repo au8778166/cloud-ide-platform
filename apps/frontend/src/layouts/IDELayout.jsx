@@ -277,7 +277,7 @@ const IDELayout = () => {
   };
 
   return (
-    <div className="h-screen bg-[#121212] flex flex-col">
+    <div className="h-screen bg-[#020617] flex flex-col">
       <Navbar
         createNewFile={createNewFile}
         activeFile={activeFile}
@@ -322,12 +322,30 @@ const IDELayout = () => {
                       updateFileContent={updateFileContent}
                     />
                   ) : (
-                    <div className="h-full flex flex-col items-center justify-center text-gray-500">
-                      <h2 className="text-3xl font-semibold mb-2">
-                        Welcome to Cloud IDE
-                      </h2>
+                    <div className="mt-8 flex flex-wrap justify-center gap-3">
+                      <div className="px-4 py-2 rounded-xl bg-slate-800 border border-yellow-500/30 text-yellow-400">
+                        JavaScript
+                      </div>
 
-                      <p className="text-lg">Create a file to start coding</p>
+                      <div className="px-4 py-2 rounded-xl bg-slate-800 border border-blue-500/30 text-blue-400">
+                        Python
+                      </div>
+
+                      <div className="px-4 py-2 rounded-xl bg-slate-800 border border-cyan-500/30 text-cyan-400">
+                        C
+                      </div>
+
+                      <div className="px-4 py-2 rounded-xl bg-slate-800 border border-green-500/30 text-green-400">
+                        C++
+                      </div>
+
+                      <div className="px-4 py-2 rounded-xl bg-slate-800 border border-red-500/30 text-red-400">
+                        Java
+                      </div>
+
+                      <div className="px-4 py-2 rounded-xl bg-slate-800 border border-sky-500/30 text-sky-400">
+                        Go
+                      </div>
                     </div>
                   )}
                 </div>

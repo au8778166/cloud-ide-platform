@@ -1,7 +1,5 @@
 import LanguageSelector from "./LanguageSelector";
-
 import { Link } from "react-router-dom";
-
 import { useAuth } from "../context/AuthContext";
 
 const Navbar = ({
@@ -15,24 +13,33 @@ const Navbar = ({
   const { user, token, logout } = useAuth();
 
   return (
-    <div className="h-14 bg-[#1e1e1e] border-b border-gray-800 flex items-center justify-between px-4 text-white">
+    <div className="h-16 bg-[#020617]/95 backdrop-blur-xl border-b border-cyan-500/10 flex items-center justify-between px-6 text-white">
       <div className="flex items-center gap-4">
-        <h1 className="text-lg font-semibold">Cloud IDE</h1>
+        <div>
+          <h1 className="text-2xl font-bold bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent">
+            Cloud IDE
+          </h1>
 
-        <span className="text-sm text-gray-400">
-          Current: {activeFile?.language || "No File"}
-        </span>
+          <p className="text-xs text-slate-400">
+            Current: {activeFile?.language || "No File"}
+          </p>
+        </div>
       </div>
 
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-3">
         <LanguageSelector createNewFile={createNewFile} />
 
         <button
           onClick={runCode}
           disabled={isRunning || !activeFile}
-          className="bg-green-600 px-4 py-1 rounded hover:bg-green-700 disabled:bg-gray-600"
+          className="
+            px-4 py-2 rounded-xl
+            bg-gradient-to-r from-emerald-500 to-green-600
+            hover:scale-105 transition-all duration-200
+            disabled:opacity-50
+          "
         >
-          {isRunning ? "Running..." : "Run"}
+          {isRunning ? "Running..." : "▶ Run"}
         </button>
 
         {token ? (
@@ -40,25 +47,38 @@ const Navbar = ({
             <button
               onClick={saveProject}
               disabled={!activeFile}
-              className="bg-blue-600 px-4 py-1 rounded hover:bg-blue-700 disabled:bg-gray-600"
+              className="
+                px-4 py-2 rounded-xl
+                bg-gradient-to-r from-cyan-500 to-blue-600
+                hover:scale-105 transition-all duration-200
+                disabled:opacity-50
+              "
             >
-              Save Project
+              Save
             </button>
 
             <button
               onClick={openProjectsModal}
-              className="bg-purple-600 px-4 py-1 rounded hover:bg-purple-700"
+              className="
+                px-4 py-2 rounded-xl
+                bg-gradient-to-r from-violet-500 to-purple-600
+                hover:scale-105 transition-all duration-200
+              "
             >
-              Open Project
+              Projects
             </button>
 
-            <span className="text-sm text-gray-300">
+            <div className="px-3 py-2 rounded-xl bg-slate-800 border border-slate-700">
               {user?.name || "User"}
-            </span>
+            </div>
 
             <button
               onClick={logout}
-              className="bg-red-600 px-4 py-1 rounded hover:bg-red-700"
+              className="
+                px-4 py-2 rounded-xl
+                bg-gradient-to-r from-rose-500 to-red-600
+                hover:scale-105 transition-all duration-200
+              "
             >
               Logout
             </button>
@@ -67,14 +87,20 @@ const Navbar = ({
           <>
             <Link
               to="/login"
-              className="bg-blue-600 px-4 py-1 rounded hover:bg-blue-700"
+              className="
+                px-4 py-2 rounded-xl
+                bg-gradient-to-r from-cyan-500 to-blue-600
+              "
             >
               Login
             </Link>
 
             <Link
               to="/register"
-              className="bg-purple-600 px-4 py-1 rounded hover:bg-purple-700"
+              className="
+                px-4 py-2 rounded-xl
+                bg-gradient-to-r from-violet-500 to-purple-600
+              "
             >
               Register
             </Link>
