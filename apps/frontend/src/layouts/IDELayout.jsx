@@ -9,6 +9,8 @@ import {
   createFile,
   getProjects,
   getProjectById,
+  deleteProject,
+  clearProjectFiles,
 } from "../api/projectApi";
 
 import { useAuth } from "../context/AuthContext";
@@ -33,6 +35,7 @@ const IDELayout = () => {
   const [projects, setProjects] = useState([]);
 
   const [showProjects, setShowProjects] = useState(false);
+  const [currentProjectId, setCurrentProjectId] = useState(null);
 
   const { token } = useAuth();
 
@@ -131,6 +134,18 @@ const IDELayout = () => {
         return;
       }
 
+      if (currentProjectId) {
+        await clearProjectFiles(currentProjectId, token);
+
+        for (const file of files) {
+          await createFile(currentProjectId, file, token);
+        }
+
+        alert("Project updated successfully");
+
+        return;
+      }
+
       const projectName = prompt("Enter project name");
 
       if (!projectName) return;
@@ -139,11 +154,13 @@ const IDELayout = () => {
 
       const projectId = projectResponse.project.id;
 
+      setCurrentProjectId(projectId);
+
       for (const file of files) {
         await createFile(projectId, file, token);
       }
 
-      alert("Project and files saved successfully");
+      alert("Project created successfully");
     } catch (error) {
       console.error(error);
 
@@ -173,6 +190,7 @@ const IDELayout = () => {
       const data = await getProjectById(projectId, token);
 
       setFiles(data.project.files);
+      setCurrentProjectId(projectId);
 
       if (data.project.files.length > 0) {
         setActiveFile(data.project.files[0]);
@@ -183,6 +201,22 @@ const IDELayout = () => {
       setShowProjects(false);
 
       setTerminalOutput(`Loaded project: ${data.project.name}`);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const handleDeleteProject = async (projectId) => {
+    try {
+      const confirmed = window.confirm("Delete this project?");
+
+      if (!confirmed) return;
+
+      await deleteProject(projectId, token);
+
+      const data = await getProjects(token);
+
+      setProjects(data.projects);
     } catch (error) {
       console.error(error);
     }
@@ -314,37 +348,39 @@ const IDELayout = () => {
         </Panel>
       </PanelGroup>
       {showProjects && (
-  <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-    <div className="bg-[#1e1e1e] w-96 rounded-lg p-6">
-      <h2 className="text-white text-xl mb-4">
-        Your Projects
-      </h2>
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-[#1e1e1e] w-96 rounded-lg p-6">
+            <h2 className="text-white text-xl mb-4">Your Projects</h2>
 
-      <div className="space-y-2 max-h-80 overflow-y-auto">
-        {projects.map((project) => (
-          <button
-            key={project.id}
-            onClick={() =>
-              loadProject(project.id)
-            }
-            className="w-full text-left p-3 rounded bg-[#2a2a2a] text-white hover:bg-[#3a3a3a]"
-          >
-            {project.name}
-          </button>
-        ))}
-      </div>
+            <div className="space-y-2 max-h-80 overflow-y-auto">
+              {projects.map((project) => (
+                <div key={project.id} className="flex items-center gap-2">
+                  <button
+                    onClick={() => loadProject(project.id)}
+                    className="flex-1 text-left p-3 rounded bg-[#2a2a2a] text-white hover:bg-[#3a3a3a]"
+                  >
+                    {project.name}
+                  </button>
 
-      <button
-        onClick={() =>
-          setShowProjects(false)
-        }
-        className="mt-4 bg-red-600 px-4 py-2 rounded text-white"
-      >
-        Close
-      </button>
-    </div>
-  </div>
-)}
+                  <button
+                    onClick={() => handleDeleteProject(project.id)}
+                    className="bg-red-600 px-3 py-3 rounded text-white hover:bg-red-700"
+                  >
+                    Delete
+                  </button>
+                </div>
+              ))}
+            </div>
+
+            <button
+              onClick={() => setShowProjects(false)}
+              className="mt-4 bg-red-600 px-4 py-2 rounded text-white"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

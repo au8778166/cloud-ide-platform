@@ -80,3 +80,36 @@ export const createFile = async (
 
   return response.data;
 };
+export const deleteProject = async (
+  projectId,
+  token
+) => {
+  const response =
+    await projectApi.delete(
+      `/projects/${projectId}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+  return response.data;
+};
+export const clearProjectFiles =
+  async (
+    projectId,
+    token
+  ) => {
+    const response =
+      await projectApi.delete(
+        `/projects/${projectId}/files`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+    return response.data;
+  };
