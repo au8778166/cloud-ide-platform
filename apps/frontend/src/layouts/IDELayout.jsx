@@ -205,6 +205,23 @@ const IDELayout = () => {
       console.error(error);
     }
   };
+  const createNewProject = () => {
+    const confirmed = window.confirm(
+      "Create a new project? Unsaved changes may be lost.",
+    );
+
+    if (!confirmed) return;
+
+    setFiles([]);
+
+    setActiveFile(null);
+
+    setCurrentProjectId(null);
+
+    setTerminalOutput("Welcome to Cloud IDE");
+
+    setProgramInput("");
+  };
 
   const handleDeleteProject = async (projectId) => {
     try {
@@ -285,6 +302,7 @@ const IDELayout = () => {
         isRunning={isRunning}
         saveProject={saveProject}
         openProjectsModal={openProjectsModal}
+        createNewProject={createNewProject}
       />
 
       <PanelGroup direction="horizontal" className="flex-1">
