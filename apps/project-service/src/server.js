@@ -14,7 +14,7 @@ app.use(express.json());
 app.use("/api/projects", projectRoutes);
 app.use("/api", fileRoutes);
 
-const PORT = 5005;
+const PORT = process.env.PORT||5005;
 
 app.listen(PORT, () => {
   console.log(`Project Service Running On Port ${PORT}`);

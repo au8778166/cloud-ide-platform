@@ -14,7 +14,7 @@ app.use("/api/v1/execute", executeRoutes);
 app.use("/api/jobs", jobRoutes);
 global.executionQueue = executionQueue;
 
-const PORT = 5004;
+const PORT = process.env.PORT||5004;
 
 app.listen(PORT, () => {
   console.log(`Execution Service Running On Port ${PORT}`);
