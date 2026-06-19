@@ -10,7 +10,7 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-app.use("/api/v1/execute", executeRoutes);
+app.use("/api/execute", executeRoutes);
 app.use("/api/jobs", jobRoutes);
 global.executionQueue = executionQueue;
 
