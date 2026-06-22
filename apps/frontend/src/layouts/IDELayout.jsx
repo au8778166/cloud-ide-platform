@@ -21,6 +21,7 @@ import FileExplorer from "../components/FileExplorer";
 import Editor from "../components/Editor";
 import Terminal from "../components/Terminal";
 import EditorTabs from "../components/EditorTabs";
+import toast from "react-hot-toast";
 
 const IDELayout = () => {
   const [files, setFiles] = useState([]);
@@ -85,21 +86,23 @@ const IDELayout = () => {
     setFiles((prev) => [...prev, newFile]);
 
     setActiveFile(newFile);
+    toast.success(`${newFile.name} created`);
   };
 
   const deleteFile = (id) => {
+    const file = files.find((f) => f.id === id);
+
     const updatedFiles = files.filter((file) => file.id !== id);
 
     setFiles(updatedFiles);
 
     if (updatedFiles.length === 0) {
       setActiveFile(null);
-      return;
-    }
-
-    if (activeFile?.id === id) {
+    } else if (activeFile?.id === id) {
       setActiveFile(updatedFiles[0]);
     }
+
+    toast.success(`${file?.name || "File"} deleted`);
   };
 
   const renameFile = (id, newName) => {
@@ -120,17 +123,19 @@ const IDELayout = () => {
         name: newName,
       });
     }
+
+    toast.success("File renamed");
   };
 
   const saveProject = async () => {
     try {
       if (!token) {
-        alert("Please login to save projects");
+        toast.error("Please login to save projects");
         return;
       }
 
       if (files.length === 0) {
-        alert("Create at least one file before saving");
+        toast.error("Create at least one file before saving");
         return;
       }
 
@@ -141,7 +146,7 @@ const IDELayout = () => {
           await createFile(currentProjectId, file, token);
         }
 
-        alert("Project updated successfully");
+        toast.success("Project updated successfully");
 
         return;
       }
@@ -160,18 +165,18 @@ const IDELayout = () => {
         await createFile(projectId, file, token);
       }
 
-      alert("Project created successfully");
+      toast.success("Project created successfully");
     } catch (error) {
       console.error(error);
 
-      alert(error.response?.data?.message || "Failed to save project");
+      toast.error(error.response?.data?.message || "Failed to save project");
     }
   };
 
   const openProjectsModal = async () => {
     try {
       if (!token) {
-        alert("Please login first");
+        toast.error("Please login first");
         return;
       }
 
@@ -182,6 +187,8 @@ const IDELayout = () => {
       setShowProjects(true);
     } catch (error) {
       console.error(error);
+
+      toast.error("Failed to load projects");
     }
   };
 
@@ -201,8 +208,12 @@ const IDELayout = () => {
       setShowProjects(false);
 
       setTerminalOutput(`Loaded project: ${data.project.name}`);
+
+      toast.success(`Loaded ${data.project.name}`);
     } catch (error) {
       console.error(error);
+
+      toast.error("Failed to load project");
     }
   };
   const createNewProject = () => {
@@ -213,14 +224,12 @@ const IDELayout = () => {
     if (!confirmed) return;
 
     setFiles([]);
-
     setActiveFile(null);
-
     setCurrentProjectId(null);
-
     setTerminalOutput("Welcome to Cloud IDE");
-
     setProgramInput("");
+
+    toast.success("Started a new project");
   };
 
   const handleDeleteProject = async (projectId) => {
@@ -231,11 +240,15 @@ const IDELayout = () => {
 
       await deleteProject(projectId, token);
 
+      toast.success("Project deleted");
+
       const data = await getProjects(token);
 
       setProjects(data.projects);
     } catch (error) {
       console.error(error);
+
+      toast.error("Failed to delete project");
     }
   };
 
@@ -265,6 +278,8 @@ const IDELayout = () => {
         if (Date.now() - startTime > MAX_WAIT_TIME) {
           setTerminalOutput("Execution Timeout");
 
+          toast.error("Execution timeout");
+
           break;
         }
 
@@ -275,11 +290,15 @@ const IDELayout = () => {
         if (status === "completed") {
           setTerminalOutput(jobResult.output);
 
+          toast.success("Execution completed");
+
           break;
         }
 
         if (status === "failed") {
           setTerminalOutput(jobResult.error || "Execution Failed");
+
+          toast.error("Execution failed");
 
           break;
         }
@@ -288,6 +307,8 @@ const IDELayout = () => {
       }
     } catch (error) {
       setTerminalOutput(error.message || "Execution Failed");
+
+      toast.error("Execution failed");
     }
 
     setIsRunning(false);
@@ -340,29 +361,61 @@ const IDELayout = () => {
                       updateFileContent={updateFileContent}
                     />
                   ) : (
-                    <div className="mt-8 flex flex-wrap justify-center gap-3">
-                      <div className="px-4 py-2 rounded-xl bg-slate-800 border border-yellow-500/30 text-yellow-400">
-                        JavaScript
+                    <div className="h-full flex flex-col items-center justify-center">
+                      <h1 className="text-4xl font-bold text-white mb-3">
+                        Welcome to Cloud IDE
+                      </h1>
+
+                      <p className="text-gray-400 mb-8">
+                        Create a file and start coding instantly
+                      </p>
+
+                      <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                        <button
+                          onClick={() => createNewFile("main", "javascript")}
+                          className="px-6 py-4 rounded-xl bg-slate-800 border border-yellow-500/30 text-yellow-400 hover:scale-105 transition-all"
+                        >
+                          🚀 JavaScript
+                        </button>
+
+                        <button
+                          onClick={() => createNewFile("main", "python")}
+                          className="px-6 py-4 rounded-xl bg-slate-800 border border-blue-500/30 text-blue-400 hover:scale-105 transition-all"
+                        >
+                          🐍 Python
+                        </button>
+
+                        <button
+                          onClick={() => createNewFile("main", "c")}
+                          className="px-6 py-4 rounded-xl bg-slate-800 border border-cyan-500/30 text-cyan-400 hover:scale-105 transition-all"
+                        >
+                          ⚡ C
+                        </button>
+
+                        <button
+                          onClick={() => createNewFile("main", "cpp")}
+                          className="px-6 py-4 rounded-xl bg-slate-800 border border-green-500/30 text-green-400 hover:scale-105 transition-all"
+                        >
+                          ⚡ C++
+                        </button>
+
+                        <button
+                          onClick={() => createNewFile("main", "java")}
+                          className="px-6 py-4 rounded-xl bg-slate-800 border border-red-500/30 text-red-400 hover:scale-105 transition-all"
+                        >
+                          ☕ Java
+                        </button>
+
+                        <button
+                          onClick={() => createNewFile("main", "go")}
+                          className="px-6 py-4 rounded-xl bg-slate-800 border border-sky-500/30 text-sky-400 hover:scale-105 transition-all"
+                        >
+                          🐹 Go
+                        </button>
                       </div>
 
-                      <div className="px-4 py-2 rounded-xl bg-slate-800 border border-blue-500/30 text-blue-400">
-                        Python
-                      </div>
-
-                      <div className="px-4 py-2 rounded-xl bg-slate-800 border border-cyan-500/30 text-cyan-400">
-                        C
-                      </div>
-
-                      <div className="px-4 py-2 rounded-xl bg-slate-800 border border-green-500/30 text-green-400">
-                        C++
-                      </div>
-
-                      <div className="px-4 py-2 rounded-xl bg-slate-800 border border-red-500/30 text-red-400">
-                        Java
-                      </div>
-
-                      <div className="px-4 py-2 rounded-xl bg-slate-800 border border-sky-500/30 text-sky-400">
-                        Go
+                      <div className="mt-10 text-center text-gray-500">
+                        <p>Supports JavaScript, Python, C, C++, Java and Go</p>
                       </div>
                     </div>
                   )}
