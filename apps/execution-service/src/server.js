@@ -1,6 +1,7 @@
 const express = require("express");
 const cors = require("cors");
-
+const dotenv = require("dotenv");
+dotenv.config();
 const executeRoutes = require("./routes/execute.routes");
 const executionQueue = require("./queues/execution.queue");
 const jobRoutes = require("./routes/job.routes");

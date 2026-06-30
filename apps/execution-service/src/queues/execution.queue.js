@@ -1,17 +1,10 @@
-const { Queue } = require(
-  "bullmq"
-);
+const { Queue } = require("bullmq");
 
-const executionQueue =
-  new Queue(
-    "execution-queue",
-    {
-      connection: {
-        host: "localhost",
-        port: 6379,
-      },
-    }
-  );
+const executionQueue = new Queue("execution-queue", {
+  connection: {
+    host: process.env.REDIS_HOST || "localhost",
+    port: Number(process.env.REDIS_PORT) || 6379,
+  },
+});
 
-module.exports =
-  executionQueue;
+module.exports = executionQueue;

@@ -1,0 +1,117 @@
+version: "3.9"
+
+services:
+  cloud-ide-postgres:
+    image: postgres:17
+    container_name: cloud-ide-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: cloudide
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  cloud-ide-redis:
+    image: redis:7-alpine
+    container_name: cloud-ide-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+
+  cloud-ide-auth:
+    build:
+      context: .
+      dockerfile: apps/auth-service/Dockerfile
+    container_name: cloud-ide-auth
+    restart: unless-stopped
+    depends_on:
+      - cloud-ide-postgres
+    environment:
+      PORT: 5001
+      DATABASE_URL: postgresql://postgres:postgres@cloud-ide-postgres:5432/cloudide
+      JWT_SECRET: ${JWT_SECRET}
+    ports:
+      - "5001:5001"
+
+  cloud-ide-project:
+    build:
+      context: .
+      dockerfile: apps/project-service/Dockerfile
+    container_name: cloud-ide-project
+    restart: unless-stopped
+    depends_on:
+      - cloud-ide-postgres
+    environment:
+      PORT: 5005
+      DATABASE_URL: postgresql://postgres:postgres@cloud-ide-postgres:5432/cloudide
+      JWT_SECRET: ${JWT_SECRET}
+    ports:
+      - "5005:5005"
+
+  cloud-ide-execution:
+    build:
+      context: .
+      dockerfile: apps/execution-service/Dockerfile
+    container_name: cloud-ide-execution
+    restart: unless-stopped
+    depends_on:
+      - cloud-ide-redis
+    environment:
+      PORT: 5004
+      REDIS_HOST: cloud-ide-redis
+      REDIS_PORT: 6379
+    ports:
+      - "5004:5004"
+
+  cloud-ide-worker:
+    build:
+      context: .
+      dockerfile: apps/worker-service/Dockerfile
+    container_name: cloud-ide-worker
+    restart: unless-stopped
+    depends_on:
+      - cloud-ide-redis
+    environment:
+      REDIS_HOST: cloud-ide-redis
+      REDIS_PORT: 6379
+
+  cloud-ide-gateway:
+    build:
+      context: .
+      dockerfile: apps/api-gateway/Dockerfile
+    container_name: cloud-ide-gateway
+    restart: unless-stopped
+    depends_on:
+      - cloud-ide-auth
+      - cloud-ide-project
+      - cloud-ide-execution
+    environment:
+      PORT: 5000
+      CLIENT_URL: http://localhost:5173
+      AUTH_SERVICE_URL: http://cloud-ide-auth:5001
+      PROJECT_SERVICE_URL: http://cloud-ide-project:5005
+      EXECUTION_SERVICE_URL: http://cloud-ide-execution:5004
+    ports:
+      - "5000:5000"
+
+  cloud-ide-frontend:
+    build:
+      context: .
+      dockerfile: apps/frontend/Dockerfile
+    container_name: cloud-ide-frontend
+    restart: unless-stopped
+    depends_on:
+      - cloud-ide-gateway
+    environment:
+      VITE_API_BASE_URL: http://localhost:5000
+    ports:
+      - "5173:5173"
+
+volumes:
+  postgres_data:
+  redis_data:
