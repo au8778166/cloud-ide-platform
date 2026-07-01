@@ -68,17 +68,7 @@ services:
     ports:
       - "5004:5004"
 
-  cloud-ide-worker:
-    build:
-      context: .
-      dockerfile: apps/worker-service/Dockerfile
-    container_name: cloud-ide-worker
-    restart: unless-stopped
-    depends_on:
-      - cloud-ide-redis
-    environment:
-      REDIS_HOST: cloud-ide-redis
-      REDIS_PORT: 6379
+  
 
   cloud-ide-gateway:
     build:

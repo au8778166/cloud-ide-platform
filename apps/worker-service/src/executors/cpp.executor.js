@@ -1,34 +1,49 @@
+const path = require("path");
+
 const createTempFile = require("../utils/createTempFile");
-
 const cleanupFile = require("../utils/cleanupFile");
+const runDockerCommand = require("../utils/runDockerCommand");
 
-const runCommand = require("../utils/runCommand");
-
-const executeCpp = async (code,input = "") => {
+const executeCpp = async (code, input = "") => {
   let sourceFile;
   let executableFile;
 
   try {
     sourceFile = createTempFile(code, "cpp");
 
-    executableFile = sourceFile.replace(".cpp", ".exe");
+    executableFile = sourceFile.replace(".cpp", "");
 
-    await runCommand("g++", [sourceFile, "-o", executableFile]);
+    const tempDir = path.dirname(sourceFile);
 
-    const output = await runCommand(executableFile,[],
-  input);
+    const dockerPath =
+      process.env.NODE_ENV === "production"
+        ? "/workspace/temp"
+        : path.resolve(tempDir).replace(/\\/g, "/");
+
+    const fileName = path.basename(sourceFile);
+
+    const executableName = path.basename(executableFile);
+
+    const dockerArgs = [
+      "run",
+      "--rm",
+      "-i",
+      "-v",
+      `${dockerPath}:/code`,
+      "cloud-ide-cpp",
+      "sh",
+      "-c",
+      `g++ /code/${fileName} -o /code/${executableName} && /code/${executableName}`,
+    ];
+
+    //console.log("Docker Args:", dockerArgs);
+
+    const output = await runDockerCommand(dockerArgs, input);
 
     return output;
-  } catch (error) {
-    throw error;
   } finally {
-    if (sourceFile) {
-      cleanupFile(sourceFile);
-    }
-
-    if (executableFile) {
-      cleanupFile(executableFile);
-    }
+    if (sourceFile) cleanupFile(sourceFile);
+    if (executableFile) cleanupFile(executableFile);
   }
 };
 
